@@ -344,6 +344,183 @@ function addManager() {
   });
 }
 
+// function to update an employee role
+function updateEmployeeRole() {
+  const queryEmployees =
+    "SELECT employee.id, employee.first_name, employee.last_name, roles.title FROM employee LEFT JOIN roles ON employee.role_id = roles.id";
+  const queryRoles = "SELECT * FROM roles";
+  db.query(queryEmployees, (err, resEmployees) => {
+    if (err) throw err;
+    db.query(queryRoles, (err, resRoles) => {
+      if (err) throw err;
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "employee",
+            message: "Select the employee to update:",
+            choices: resEmployees.map(
+              (employee) => `${employee.first_name} ${employee.last_name}`
+            ),
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "Select the new role:",
+            choices: resRoles.map((role) => role.title),
+          },
+        ])
+        .then((answers) => {
+          const employee = resEmployees.find(
+            (employee) =>
+              `${employee.first_name} ${employee.last_name}` ===
+              answers.employee
+          );
+          const role = resRoles.find((role) => role.title === answers.role);
+          const query = "UPDATE employee SET role_id = ? WHERE id = ?";
+          db.query(query, [role.id, employee.id], (err, res) => {
+            if (err) throw err;
+            console.log(
+              `Updated ${employee.first_name} ${employee.last_name}'s role to ${role.title} in the database!`
+            );
+            // restart the application
+            initiate();
+          });
+        });
+    });
+  });
+}
+
+// Function to View Employee By Manager
+function viewEmployeesByManager() {
+  const query = `
+    SELECT 
+      e.id, 
+      e.first_name, 
+      e.last_name, 
+      r.title, 
+      d.department_name, 
+      CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+    FROM 
+      employee e
+      INNER JOIN roles r ON e.role_id = r.id
+      INNER JOIN departments d ON r.department_id = d.id
+      LEFT JOIN employee m ON e.manager_id = m.id
+    ORDER BY 
+      manager_name, 
+      e.last_name, 
+      e.first_name
+  `;
+
+  db.query(query, (err, res) => {
+    if (err) throw err;
+
+    // group employees by manager
+    const employeesByManager = res.reduce((acc, cur) => {
+      const managerName = cur.manager_name;
+      if (acc[managerName]) {
+        acc[managerName].push(cur);
+      } else {
+        acc[managerName] = [cur];
+      }
+      return acc;
+    }, {});
+
+    // display employees by manager
+    console.log("Employees by manager:");
+    for (const managerName in employeesByManager) {
+      console.log(`\n${managerName}:`);
+      const employees = employeesByManager[managerName];
+      employees.forEach((employee) => {
+        console.log(
+          `  ${employee.first_name} ${employee.last_name} | ${employee.title} | ${employee.department_name}`
+        );
+      });
+    }
+
+    // restart the application
+    initiate();
+  });
+}
+// Function to view Employees by Department
+function viewEmployeesByDepartment() {
+  const query =
+      "SELECT departments.department_name, employee.first_name, employee.last_name FROM employee INNER JOIN roles ON employee.role_id = roles.id INNER JOIN departments ON roles.department_id = departments.id ORDER BY departments.department_name ASC";
+
+      db.query(query, (err, res) => {
+      if (err) throw err;
+      console.log("\nEmployees by department:");
+      console.table(res);
+      // restart the application
+      initiate();
+  });
+}
+
+// Function to DELETE Departments Roles Employees
+function deleteDepartmentsRolesEmployees() {
+  inquirer
+      .prompt({
+          type: "list",
+          name: "data",
+          message: "What would you like to delete?",
+          choices: ["Employee", "Role", "Department"],
+      })
+      .then((answer) => {
+          switch (answer.data) {
+              case "Employee":
+                  deleteEmployee();
+                  break;
+              case "Role":
+                  deleteRole();
+                  break;
+              case "Department":
+                  deleteDepartment();
+                  break;
+              default:
+                  console.log(`Invalid data: ${answer.data}`);
+                  initiate();
+                  break;
+          }
+      });
+}
+
+// Function to DELETE Employees
+function deleteEmployee() {
+  const query = "SELECT * FROM employee";
+  db.query(query, (err, res) => {
+      if (err) throw err;
+      const employeeList = res.map((employee) => ({
+          name: `${employee.first_name} ${employee.last_name}`,
+          value: employee.id,
+      }));
+      employeeList.push({ name: "Go Back", value: "back" }); // add a "back" option
+      inquirer
+          .prompt({
+              type: "list",
+              name: "id",
+              message: "Select the employee you want to delete:",
+              choices: employeeList,
+          })
+          .then((answer) => {
+              if (answer.id === "back") {
+                  // check if user selected "back"
+                  deleteDepartmentsRolesEmployees();
+                  return;
+              }
+              const query = "DELETE FROM employee WHERE id = ?";
+              db.query(query, [answer.id], (err, res) => {
+                  if (err) throw err;
+                  console.log(
+                      `Deleted employee with ID ${answer.id} from the database!`
+                      
+                  );
+                  // restart the application
+                  initiate();
+              });
+          });
+  });
+}
+
 // close the connection when the application exits
 process.on("exit", () => {
   db.end();
