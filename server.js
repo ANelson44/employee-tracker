@@ -5,8 +5,16 @@ const db = mysql.createConnection(
     {
       host: 'localhost',
       user: 'root',
-      password: 'Bailey2023#',
+      port:3306,
+      password: '',
       database: 'employeeTracker_db'
-    },
-    console.log(`Connected to the database.`)
-  );
+    });
+
+    db.connect((err) =>{
+      if (err) throw err;
+      console.log(`Connected to the database.`);
+      // start application
+      initiate();
+    });
+
+    
