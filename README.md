@@ -14,7 +14,10 @@
   2) Open the "intergrated terminal" on "server.js" and enter "node server.js"
   3) Use the "UP" and "DOWN" arrow keys to navigate the menu.
   4) Click "enter" on the desired option.
-  5) Follow the command-line prompts. 
+  5) Follow the command-line prompts.
+
+## Demo Video
+[CMS Demo.webm](https://github.com/ANelson44/employee-tracker/assets/145131926/5414b485-68cf-4964-b0a0-5b1e98966f0a)
 
 
   ## Built With
