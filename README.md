@@ -3,6 +3,9 @@
 ## Description
   This is an interface that allows non-developers to easily view and interact with information stored in databases. This content management system (CMS) is a command-line application using Node.js, inquirer, and MySQL. Seed data is fictional and employee names are friends and previous employers.
 
+  ![Screenshot ET](https://github.com/ANelson44/employee-tracker/assets/145131926/93725046-8ce3-4ac6-b2f0-9aeff35f688e)
+
+
   ## Requirements
   Node.js, inquirer, MySQL  
 
